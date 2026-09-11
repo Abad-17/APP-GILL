@@ -71,7 +71,7 @@ RUTA_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUTA_MODELO_BASE = os.path.join(RUTA_RAIZ, "modelo_base_es")
 RUTA_MODELO_FINETUNED = os.path.join(RUTA_RAIZ, "modelo_finetuned_ner_lg")
 
-@st.cache_resource
+"""@st.cache_resource
 def load_nlp_model():
     try:
         return spacy.load(RUTA_MODELO_BASE)
@@ -82,6 +82,31 @@ def load_nlp_model():
 nlp = load_nlp_model()
 
 @st.cache_resource
+def load_nlp_model_finetuned():
+    try:
+        return spacy.load(RUTA_MODELO_FINETUNED)
+    except Exception as e:
+        print(f"Error cargando el modelo finetuned en {RUTA_MODELO_FINETUNED}: {e}")
+        return None
+
+nlp_finetuned = load_nlp_model_finetuned()"""
+
+# Elimina: import streamlit as st
+from functools import lru_cache # Usa la caché nativa de Python
+
+# ... tus rutas ...
+
+@lru_cache(maxsize=1)
+def load_nlp_model():
+    try:
+        return spacy.load(RUTA_MODELO_BASE)
+    except Exception as e:
+        print(f"Error cargando el modelo base en {RUTA_MODELO_BASE}: {e}")
+        return None
+
+nlp = load_nlp_model()
+
+@lru_cache(maxsize=1)
 def load_nlp_model_finetuned():
     try:
         return spacy.load(RUTA_MODELO_FINETUNED)
@@ -1287,6 +1312,9 @@ def extraer_metadatos(pdf_path):
         # Extrae la colección o serie
         coleccion = extraer_coleccion_serie(texto_legal, texto_total)
         metadatos["coleccion"] = coleccion if coleccion else None
+
+        # Guardamos el texto total para usarlo en el resumen
+        #metadatos["texto_total"] = texto_total
 
     except Exception as e:
         print(f"Error procesando {pdf_path}: {e}")
